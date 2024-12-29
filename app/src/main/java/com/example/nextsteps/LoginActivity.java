@@ -18,7 +18,7 @@ public class LoginActivity extends AppCompatActivity {
 
 
     private EditText etEmail, etPassword;
-    private Button btnLogin, btnSignUp;
+    private Button   btnLogin, btnSignUp;
     private TextView tvDontHaveAccount;
 
     @Override
@@ -26,7 +26,6 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-//chanege
         // Initialize views
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
