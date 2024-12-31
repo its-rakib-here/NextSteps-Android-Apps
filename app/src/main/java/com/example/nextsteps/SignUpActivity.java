@@ -16,33 +16,24 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import android.Manifest;
-
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 public class SignUpActivity extends AppCompatActivity {
 
@@ -54,7 +45,6 @@ public class SignUpActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_sign_up);
 
         // Initialize Views
@@ -66,42 +56,28 @@ public class SignUpActivity extends AppCompatActivity {
         tvAlreadyHaveAccount = findViewById(R.id.tvAlreadyHaveAccount);
         ivProfileImage = findViewById(R.id.ivProfileImage);
 
+        // Set a default image in the ImageView
+        ivProfileImage.setImageResource(R.drawable.appbarprofile);
 
-
-// pick image
-        ivProfileImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (checkCameraPermission()) {
-                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    cameraLauncher.launch(intent);
-                }
+        // Pick image
+        ivProfileImage.setOnClickListener(view -> {
+            if (checkCameraPermission()) {
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                cameraLauncher.launch(intent);
             }
         });
 
+        // Sign Up button listener
+        btnSignUp.setOnClickListener(v -> handleSignUp());
 
-
-        // Set Click Listener for Sign Up Button
-        btnSignUp.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                handleSignUp();
-            }
-        });
-
-        // Set Click Listener for Already Have an Account Text
-        tvAlreadyHaveAccount.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Navigate to Login Activity
-                Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
-                startActivity(intent);
-                finish();
-            }
+        // Already have an account? Listener
+        tvAlreadyHaveAccount.setOnClickListener(v -> {
+            Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
         });
     }
 
-    // Method to Handle Sign Up
     private void handleSignUp() {
         String fullName = etFullName.getText().toString().trim();
         String email = etEmail.getText().toString().trim();
@@ -113,78 +89,51 @@ public class SignUpActivity extends AppCompatActivity {
             etFullName.setError("Full Name is required");
             return;
         }
-
         if (TextUtils.isEmpty(email)) {
             etEmail.setError("Email is required");
             return;
         }
-
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             etEmail.setError("Enter a valid email");
             return;
         }
-
         if (TextUtils.isEmpty(password)) {
             etPassword.setError("Password is required");
             return;
         }
-
         if (password.length() < 6) {
             etPassword.setError("Password must be at least 6 characters");
             return;
         }
-
         if (!password.equals(confirmPassword)) {
             etConfirmPassword.setError("Passwords do not match");
             return;
         }
-        if (ivProfileImage.getDrawable() == null) {
-            Toast.makeText(this, "Please select a profile image", Toast.LENGTH_SHORT).show();
-            return;
-        }
 
+        // Convert profile image to Base64
+        BitmapDrawable bitmapDrawable = (BitmapDrawable) ivProfileImage.getDrawable();
+        Bitmap bitmap = bitmapDrawable.getBitmap();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream);
+        byte[] imageByte = byteArrayOutputStream.toByteArray();
+        String image64 = Base64.encodeToString(imageByte, Base64.DEFAULT);
 
-        //convert image into bitmap
-
-        BitmapDrawable bitmapDrawable= (BitmapDrawable) ivProfileImage.getDrawable();
-        Bitmap bitmap=bitmapDrawable.getBitmap();
-
-        ByteArrayOutputStream byteArrayOutputStream=new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG,50,byteArrayOutputStream);
-
-        byte[] imageByte=byteArrayOutputStream.toByteArray();
-        String image64= Base64.encodeToString(imageByte,Base64.DEFAULT);
-
-        Toast.makeText(this, "Account Created Successfully!", Toast.LENGTH_SHORT).show();
-
-
-        sendData(fullName,email,password,confirmPassword,image64);
-
-
-
-        // Navigate to Login Activity after successful registration
-        Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
-        startActivity(intent);
-        finish();
-
-
+        // Send data to the server
+        sendData(fullName, email, password, confirmPassword, image64);
     }
 
-    // Check camera permission
     private boolean checkCameraPermission() {
-        boolean cameraPermission = false;
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            cameraPermission = true;
+            return true;
         } else {
-            String[] permission = {Manifest.permission.CAMERA};
-            ActivityCompat.requestPermissions(this, permission, 123);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 123);
+            return false;
         }
-        return cameraPermission;
     }
 
-// Launch camera for pic image
-    ActivityResultLauncher<Intent> cameraLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+    ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
                 @Override
                 public void onActivityResult(ActivityResult result) {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
@@ -194,62 +143,55 @@ public class SignUpActivity extends AppCompatActivity {
                             ivProfileImage.setImageBitmap(bitmap);
                         }
                     } else {
-                        Toast.makeText(SignUpActivity.this,"Image not captured",Toast.LENGTH_LONG).show();
+                        Toast.makeText(SignUpActivity.this, "Image not captured", Toast.LENGTH_LONG).show();
                     }
                 }
             });
 
-    // send data to server
     private void sendData(String name, String email, String password, String confirmPassword, String image) {
         String url = "https://mensstylehouse.com/aa/NextSteps/php/signup.php";
         RequestQueue queue = Volley.newRequestQueue(SignUpActivity.this);
 
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
-                response -> {
-                    // Handle success response
-                    try {
+        try {
+            JSONObject requestData = new JSONObject();
+            requestData.put("name", name);
+            requestData.put("email", email);
+            requestData.put("password", password);
+            requestData.put("confirmPassword", confirmPassword);
+            requestData.put("image", image);
 
-                        Toast.makeText(SignUpActivity.this,response,Toast.LENGTH_SHORT).show();
-                        Log.d("Response", response);
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                    Request.Method.POST, url, requestData,
+                    response -> {
+                        Log.d("Response", response.toString());
+                        try {
+                            String status = response.getString("status");
+                            String message = response.getString("message");
 
-                        JSONObject jsonResponse = new JSONObject(response);
-                        String status = jsonResponse.getString("status");
-                        String message = jsonResponse.getString("message");
+                            if("Email already registered".equalsIgnoreCase(message))
+                            {
+                                Toast.makeText(SignUpActivity.this, "This email is already exist", Toast.LENGTH_SHORT).show();
 
-                        if (status.equalsIgnoreCase("success")) {
-                            Toast.makeText(SignUpActivity.this, "Signup Successful!", Toast.LENGTH_SHORT).show();
-                            // Navigate to LoginActivity
-                            Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            Toast.makeText(SignUpActivity.this, "Signup Failed: " + message, Toast.LENGTH_LONG).show();
+                            }
+                            if ("success".equalsIgnoreCase(status)) {
+                                Toast.makeText(SignUpActivity.this, "Signup Successful!", Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Toast.makeText(SignUpActivity.this, "Error: " + message, Toast.LENGTH_LONG).show();
+                            }
+                        } catch (JSONException e) {
+                            Toast.makeText(SignUpActivity.this, "Error parsing response: " + e.getMessage(), Toast.LENGTH_LONG).show();
                         }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        Toast.makeText(SignUpActivity.this, e.toString(), Toast.LENGTH_LONG).show();
-                    }
-                },
-                error -> {
-                    // Handle error
-                    Toast.makeText(SignUpActivity.this, "Network error: " + error.getMessage(), Toast.LENGTH_LONG).show();
-                }) {
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-                params.put("name", name);
-                params.put("email", email);
-                params.put("password", password); // Corrected spelling
-                params.put("confirmPassword", confirmPassword);
-                params.put("image", image);
+                    },
+                    error -> Toast.makeText(SignUpActivity.this, "Network error: " + error.getMessage(), Toast.LENGTH_LONG).show()
+            );
 
-                return params;
-            }
-        };
+            queue.add(jsonObjectRequest);
 
-        queue.add(stringRequest);
+        } catch (JSONException e) {
+            Toast.makeText(SignUpActivity.this, "Error creating request: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
-
-
-
 }
