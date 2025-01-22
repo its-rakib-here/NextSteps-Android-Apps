@@ -25,6 +25,8 @@
     <!-- Email Input -->
     <EditText
         android:id="@+id/etEmail"
+        android:importantForAutofill="no"
+
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Enter Email"
@@ -40,6 +42,8 @@
     <!-- Password Input -->
     <EditText
         android:id="@+id/etPassword"
+        android:importantForAutofill="no"
+
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Enter Password"
@@ -97,6 +101,7 @@
         app:layout_constraintTop_toBottomOf="@id/btnSignUp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

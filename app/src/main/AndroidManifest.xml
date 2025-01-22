@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.CAMERA"/>
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:allowBackup="true"
@@ -20,6 +21,28 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.NextSteps"
         tools:targetApi="31">
+        <activity
+            android:name=".UserProfile"
+            android:exported="false" />
+        <activity
+            android:name=".HomeFragment"
+            android:exported="false" />
+        <activity
+            android:name=".ShowTaskUnderProject"
+            android:exported="false"
+            android:theme="@style/Theme.NextSteps" />
+        <activity
+            android:name=".ShowProjectActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ProjectActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ShowTask"
+            android:exported="false" />
+        <activity
+            android:name=".CreateTask"
+            android:exported="false" />
         <activity
             android:name=".SignUpActivity"
             android:exported="false" />

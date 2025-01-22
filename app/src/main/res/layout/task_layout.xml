@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_marginBottom="16dp">
+
+    <!-- Task Title -->
+    <EditText
+        android:id="@+id/task_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Task Title"
+        android:background="@drawable/edittext_background"
+        android:padding="12dp"
+        android:textColor="#000000"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Task Description -->
+    <EditText
+        android:id="@+id/task_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Task Description"
+        android:background="@drawable/edittext_background"
+        android:padding="12dp"
+        android:textColor="#000000"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Start Time -->
+    <EditText
+        android:id="@+id/start_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Start Time (e.g., 09:00 AM)"
+        android:background="@drawable/edittext_background"
+        android:padding="12dp"
+        android:textColor="#000000"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- End Time -->
+    <EditText
+        android:id="@+id/end_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="End Time (e.g., 05:00 PM)"
+        android:background="@drawable/edittext_background"
+        android:padding="12dp"
+        android:textColor="#000000"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Distribute Task Name (Optional) -->
+    <EditText
+        android:id="@+id/distribute_task_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Distribute Task To (Optional)"
+        android:background="@drawable/edittext_background"
+        android:padding="12dp"
+        android:textColor="#000000"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Buttons (Save and Delete) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="8dp">
+
+        <!-- Delete Task Button -->
+        <Button
+            android:id="@+id/delete_task_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="#E53935"
+            android:layout_marginEnd="8dp"
+            android:text="Delete Task"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF" />
+
+        <!-- Save Task Button -->
+        <Button
+            android:id="@+id/save_task_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="#4CAF50"
+            android:layout_marginStart="8dp"
+            android:text="Save Task"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+</LinearLayout>

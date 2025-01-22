@@ -3,13 +3,16 @@
     <item
         android:id="@+id/home"
         android:icon="@drawable/home"
-        android:title="Home" />
+        android:title="Home"
+        android:orderInCategory="0"/>
     <item
         android:id="@+id/task"
         android:icon="@drawable/appbarprofile"
-        android:title="Task" />
+        android:title="Task"
+        android:orderInCategory="1"/>
     <item
         android:id="@+id/project"
         android:icon="@drawable/task"
-        android:title="Project" />
+        android:title="Project"
+        android:orderInCategory="2"/>
 </menu>

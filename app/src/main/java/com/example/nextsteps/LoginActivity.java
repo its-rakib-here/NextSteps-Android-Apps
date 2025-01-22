@@ -1,6 +1,7 @@
 package com.example.nextsteps;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -9,11 +10,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -25,9 +22,8 @@ import org.json.JSONObject;
 
 public class LoginActivity extends AppCompatActivity {
 
-
     private EditText etEmail, etPassword;
-    private Button   btnLogin, btnSignUp;
+    private Button btnLogin, btnSignUp;
     private TextView tvDontHaveAccount;
 
     @Override
@@ -42,7 +38,10 @@ public class LoginActivity extends AppCompatActivity {
         btnSignUp = findViewById(R.id.btnSignUp);
         tvDontHaveAccount = findViewById(R.id.tvDontHaveAccount);
 
-
+        // Check if the user is already logged in
+        if (isUserLoggedIn()) {
+            navigateToMainActivity();
+        }
 
         // Handle Login button click
         btnLogin.setOnClickListener(view -> handleLogin());
@@ -71,18 +70,8 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Perform login logic (e.g., authenticate with server or database)
-       // if (email.equals("test@example.com") && password.equals("password")) {
-            // Simulate successful login
-            sendLoginInformation(email,password);
-
-
-//            Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
-//            // Navigate to another activity after successful login (e.g., MainActivity)
-//            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-//            startActivity(intent);
-//            finish(); // Close the login activity
-        //}
+        // Send login information
+        sendLoginInformation(email, password);
     }
 
     private void navigateToSignUp() {
@@ -91,41 +80,74 @@ public class LoginActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void sendLoginInformation(String etEmail, String etPassword) {
+    private boolean isUserLoggedIn() {
+        SharedPreferences sharedPreferences = getSharedPreferences("MyApp", MODE_PRIVATE);
+        return sharedPreferences.contains("email") && sharedPreferences.contains("password");
+    }
+
+    private void navigateToMainActivity() {
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    private void sendLoginInformation(String email, String password) {
         String url = "https://mensstylehouse.com/aa/NextSteps/php/login.php";
         RequestQueue queue = Volley.newRequestQueue(LoginActivity.this);
 
         try {
             JSONObject requestData = new JSONObject();
-            requestData.put("email", etEmail); // Match JSON key
-            requestData.put("password", etPassword); // Match JSON key
+            requestData.put("email", email); // Match JSON key
+            requestData.put("password", password); // Match JSON key
 
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                     Request.Method.POST, url, requestData,
                     response -> {
                         try {
-                            String status = response.getString("status");
-                            String message = response.getString("message");
+                            // Log the raw response for debugging
+                            Log.d("Response", "Server response: " + response.toString());
 
+                            String status = response.getString("status");
+
+                            // Check the login status
                             if ("success".equalsIgnoreCase(status)) {
+                                int userId = response.getInt("user_id");
+
+                                // Store the user_id, email, and password in SharedPreferences
+                                SharedPreferences sharedPreferences = getSharedPreferences("MyApp", MODE_PRIVATE);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putInt("id", userId);
+                                editor.putString("email", email);
+                                editor.putString("password", password);
+                                editor.apply();
+
+                                // Navigate to MainActivity
                                 Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
-                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                                startActivity(intent);
-                                finish();
+                                navigateToMainActivity();
                             } else {
+                                // Display error message if login failed
+                                String message = response.optString("message", "Unknown error");
                                 Toast.makeText(LoginActivity.this, message, Toast.LENGTH_LONG).show();
                             }
                         } catch (JSONException e) {
+                            // Handle error in response
+                            Log.e("JSONError", "Error parsing response: " + e.getMessage(), e);
                             Toast.makeText(LoginActivity.this, "Error parsing response: " + e.getMessage(), Toast.LENGTH_LONG).show();
                         }
                     },
-                    error -> Toast.makeText(LoginActivity.this, "Network error: " + error.getMessage(), Toast.LENGTH_LONG).show()
+                    error -> {
+                        // Log the error and show a toast message
+                        Log.e("VolleyError", "Error: " + error.getMessage(), error);
+                        Toast.makeText(LoginActivity.this, "Network error: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                    }
             );
 
+            // Add the request to the Volley queue
             queue.add(jsonObjectRequest);
         } catch (JSONException e) {
+            // Handle error in creating the request
+            Log.e("RequestError", "Error creating request: " + e.getMessage(), e);
             Toast.makeText(LoginActivity.this, "Error creating request: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
-
 }
