@@ -6,6 +6,10 @@
     <color name="green">#4CAF50</color>
     <color name="primary">#6200EE</color>
     <color name="primary_variant">#3700B3</color>
+    <color name="color_pending">#FFA726</color>
+    <color name="color_completed">#66BB6A</color>
+    <color name="color_overdue">#EF5350</color>
+
 
 
 </resources>

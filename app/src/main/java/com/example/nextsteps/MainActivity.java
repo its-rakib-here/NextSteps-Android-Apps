@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,49 +31,23 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    TextView toolbarDate, toolbarDay, toolbarWelcomeMessage;
+
     FloatingActionButton fab;
     BottomNavigationView bottom_navigation;
-    ImageView appbarprofile;
+    FrameLayout content_frame;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        toolbarDate = findViewById(R.id.toolbar_date);
-        toolbarDay = findViewById(R.id.toolbar_day);
-        toolbarWelcomeMessage = findViewById(R.id.toolbar_welcome_message);
-        fab = findViewById(R.id.fab);
+
         bottom_navigation = findViewById(R.id.bottom_navigation);
-        appbarprofile = findViewById(R.id.appbarprofile);
-
-        appbarprofile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this,UserProfile.class));
-            }
-        });
+        content_frame = findViewById(R.id.content_frame);
 
 
-
-
-
-
-        // Set Date
-        String currentDate = new SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(new Date());
-        toolbarDate.setText(currentDate);
-
-        // Set Day
-        String currentDay = new SimpleDateFormat("EEEE", Locale.getDefault()).format(new Date());
-        toolbarDay.setText(currentDay);
-
-        // Set Welcome Message
-        String userName = "Rakib"; // Replace with the username from the database
-        String welcomeMessage = "Welcome back, " + userName + "! Let's finish your today's work";
-        toolbarWelcomeMessage.setText(welcomeMessage);
-
-
+        fab=findViewById(R.id.fab);
 
 
         // Set Floating Action Button click listener
@@ -136,15 +111,25 @@ public class MainActivity extends AppCompatActivity {
                     case 1:
                         // Second item (Task) selected
                         // Add your code here for Task
-                        startActivity(new Intent(MainActivity.this, ShowTask.class));
+                        ShowTaskFragment fragment = new ShowTaskFragment();
+                        getSupportFragmentManager()
+                                .beginTransaction()
+                                .replace(R.id.content_frame, new ShowTaskFragment()) // Replace 'fragment_container' with your actual container ID
+                                .addToBackStack(null) // Optional: Adds this transaction to the back stack
+                                .commit();
+
                         Toast.makeText(MainActivity.this,"Task is selected",Toast.LENGTH_SHORT).show();
 
                         return true;
                     case 2:
-                        startActivity(new Intent(MainActivity.this, ShowProjectActivity.class));
+                        ShowTaskFragment projectFragment = new ShowTaskFragment();
+                        getSupportFragmentManager()
+                                .beginTransaction()
+                                .replace(R.id.content_frame, new ShowProjectFragment()) // Replace 'fragment_container' with your actual container ID
+                                .addToBackStack(null) // Optional: Adds this transaction to the back stack
+                                .commit();
 
-                        // Third item (Project) selected
-                        // Add your code here for Project
+                        Toast.makeText(MainActivity.this,"Task is selected",Toast.LENGTH_SHORT).show();
                         return true;
                     default:
                         return false;

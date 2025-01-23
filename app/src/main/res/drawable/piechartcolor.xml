@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+        <color android:name="colorPrimary"
+            tools:ignore="ExtraText">#024265</color>
+        <color android:name="colorPrimaryDark">#024265</color>
+        <color android:name="colorAccent">#05af9b</color>
+
+        <color android:name="color_one">#fb7268</color>
+        <color android:name="color_white">#ededf2</color>
+        <color android:name="color_two">#E3E0E0</color>
+
+        <color android:name="Pending">#FFA726</color>
+        <color android:name="Pompleted">#66BB6A</color>
+        <color android:name="Overdue">#EF5350</color>
+
+
+    </resources>
+

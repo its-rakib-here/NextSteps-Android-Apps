@@ -134,6 +134,9 @@ public class ProjectActivity extends AppCompatActivity {
                             Log.d("ProjectSave", "User ID: " + getUserIdFromPreferences());
 
                             Toast.makeText(this, "Project saved successfully", Toast.LENGTH_SHORT).show();
+
+                            // Hide the UI after successful save
+                           // hideSaveProjectUI();
                         } else {
                             String message = jsonResponse.getString("message");
                             Log.e("ProjectSave", "Server Error: " + message);
@@ -174,6 +177,24 @@ public class ProjectActivity extends AppCompatActivity {
         requestQueue.add(stringRequest);
     }
 
+
+    private void hideSaveProjectUI() {
+        // Hide all views except the "Add New Task" button
+        findViewById(R.id.project_title_label).setVisibility(View.GONE);
+        findViewById(R.id.project_title).setVisibility(View.GONE);
+        findViewById(R.id.project_description).setVisibility(View.GONE);
+        findViewById(R.id.project_dates_label).setVisibility(View.GONE);
+        findViewById(R.id.project_start_date_label).setVisibility(View.GONE);
+        findViewById(R.id.project_start_date).setVisibility(View.GONE);
+        findViewById(R.id.project_finish_date_label).setVisibility(View.GONE);
+        findViewById(R.id.project_finish_date).setVisibility(View.GONE);
+        findViewById(R.id.task_section_title).setVisibility(View.GONE);
+        findViewById(R.id.task_container).setVisibility(View.GONE);
+        findViewById(R.id.save_project_button).setVisibility(View.GONE);
+
+        // Ensure "Add New Task" button remains visible
+        findViewById(R.id.add_new_task_button).setVisibility(View.VISIBLE);
+    }
 
     private void saveProjectIdToPreferences(int projectId) {
         SharedPreferences sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);

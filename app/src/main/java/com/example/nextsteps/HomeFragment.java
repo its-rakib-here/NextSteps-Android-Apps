@@ -1,13 +1,16 @@
 package com.example.nextsteps;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,33 +28,68 @@ import com.anychart.chart.common.dataentry.DataEntry;
 import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.anychart.charts.Pie;
 
+import org.eazegraph.lib.charts.PieChart;
+import org.eazegraph.lib.models.PieModel;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class HomeFragment extends Fragment {
 
-    private AnyChartView chartView;
-    private Button btnDailyProgress, btnWeeklyProgress, btnMonthlyProgress;
+    PieChart chartView;
+    private Button btnDailyProgress, btnWeeklyProgress, btnMonthlyProgress,btn_overdue_tasks;
     private RecyclerView recyclerIndividualTasks, recyclerProjectsWithTasks;
     private TaskAdapter taskAdapter;
     private ProjectAdapter projectAdapter;
-    private String currentFilter = "daily"; // Default filter
+    private String currentFilter = "daily";
+    TextView toolbarDate, toolbarDay, toolbarWelcomeMessage;
+    ImageView appbarprofile;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View homeFragment = inflater.inflate(R.layout.fragment_home, container, false);
 
         // Initialize UI components
-        chartView = homeFragment.findViewById(R.id.chart_view);
+        chartView = homeFragment.findViewById(R.id.piechart);
         btnDailyProgress = homeFragment.findViewById(R.id.btn_daily_progress);
         btnWeeklyProgress = homeFragment.findViewById(R.id.btn_weekly_progress);
         btnMonthlyProgress = homeFragment.findViewById(R.id.btn_monthly_progress);
+        btn_overdue_tasks = homeFragment.findViewById(R.id.btn_overdue_tasks);
+
         recyclerIndividualTasks = homeFragment.findViewById(R.id.recycler_individual_tasks);
         recyclerProjectsWithTasks = homeFragment.findViewById(R.id.recycler_projects_with_tasks);
+        toolbarDate = homeFragment.findViewById(R.id.toolbar_date);
+        toolbarDay = homeFragment.findViewById(R.id.toolbar_day);
+        toolbarWelcomeMessage = homeFragment.findViewById(R.id.toolbar_welcome_message);
+        appbarprofile = homeFragment.findViewById(R.id.appbarprofile);
+        recyclerProjectsWithTasks = homeFragment.findViewById(R.id.recycler_projects_with_tasks);
+
+
+        appbarprofile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getContext(), UserProfile.class));
+            }
+        });
+
+        // Set Date
+        String currentDate = new SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(new Date());
+        toolbarDate.setText(currentDate);
+
+        // Set Day
+        String currentDay = new SimpleDateFormat("EEEE", Locale.getDefault()).format(new Date());
+        toolbarDay.setText(currentDay);
+
+        // Set Welcome Message
+        String userName = "Rakib"; // Replace with the username from the database
+        String welcomeMessage = "Welcome back, " + userName + "! Let's finish your today's work";
+        toolbarWelcomeMessage.setText(welcomeMessage);
 
         // Initialize adapters
         taskAdapter = new TaskAdapter(new ArrayList<>());
@@ -82,6 +120,13 @@ public class HomeFragment extends Fragment {
             fetchTaskData(currentFilter);
         });
 
+        btn_overdue_tasks.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                currentFilter="overdue";
+                fetchTaskData(currentFilter);
+            }
+        });
         // Fetch initial data
         fetchTaskData(currentFilter);
         fetchProjectsWithTasks(currentFilter);
@@ -168,37 +213,80 @@ public class HomeFragment extends Fragment {
 
         Volley.newRequestQueue(requireContext()).add(request);
     }
+//
+//    private void updatePieChart(int pendingCount, int completedCount, int overdueCount) {
+//        Pie pie = AnyChart.pie();
+//        int totalTasks = pendingCount + completedCount + overdueCount;
+//
+//        if (totalTasks == 0) {
+//            Toast.makeText(requireContext(), "No tasks available for the selected filter.", Toast.LENGTH_SHORT).show();
+//           // chartView.setVisibility(View.GONE);
+//            return;
+//        }
+//        Log.d("value", "Total task: " + totalTasks);
+//        Log.d("value","pending"+pendingCount);
+//        Log.d("value","complete"+completedCount);
+//        Log.d("value","overdue"+overdueCount);
+//
+//        chartView.setVisibility(View.VISIBLE);
+//
+//        List<DataEntry> data = new ArrayList<>();
+//        if (pendingCount > 0) data.add(new ValueDataEntry("Pending", pendingCount));
+//        if (completedCount > 0) data.add(new ValueDataEntry("Completed", completedCount));
+//        if (overdueCount > 0) data.add(new ValueDataEntry("Overdue", overdueCount));
+//
+//        pie.data(data);
+//        pie.title("Task Overview");
+//        pie.legend().position("center-bottom").itemsLayout("horizontal").align("center");
+//
+//        pie.labels().position("outside").fontSize(14);
+//        pie.animation(true);
+//
+//        chartView.setChart(pie);
+//    }
 
     private void updatePieChart(int pendingCount, int completedCount, int overdueCount) {
-        Pie pie = AnyChart.pie();
+        // Calculate total tasks
         int totalTasks = pendingCount + completedCount + overdueCount;
-
-        if (totalTasks == 0) {
-            Toast.makeText(requireContext(), "No tasks available for the selected filter.", Toast.LENGTH_SHORT).show();
-            chartView.setVisibility(View.GONE);
+        if (totalTasks <= 0) {
+            Toast.makeText(getContext(), "No tasks available to display.", Toast.LENGTH_SHORT).show();
+            chartView.clearChart(); // Clear the chart if no data
             return;
         }
-        Log.d("value", "Total task: " + totalTasks);
-        Log.d("value","pending"+pendingCount);
-        Log.d("value","complete"+completedCount);
-        Log.d("value","overdue"+overdueCount);
 
-        chartView.setVisibility(View.VISIBLE);
+        // Calculate percentages
+        float pendingPercentage = (pendingCount / (float) totalTasks) * 100;
+        float completedPercentage = (completedCount / (float) totalTasks) * 100;
+        float overduePercentage = (overdueCount / (float) totalTasks) * 100;
+        // Log values for debugging
+        Log.d("PieChart", "Total tasks: " + totalTasks);
+        Log.d("PieChart", "Pending: " + pendingPercentage);
+        Log.d("PieChart", "Completed: " + completedPercentage);
+        Log.d("PieChart", "Overdue: " + overduePercentage);
 
-        List<DataEntry> data = new ArrayList<>();
-        if (pendingCount > 0) data.add(new ValueDataEntry("Pending", pendingCount));
-        if (completedCount > 0) data.add(new ValueDataEntry("Completed", completedCount));
-        if (overdueCount > 0) data.add(new ValueDataEntry("Overdue", overdueCount));
+        // Clear previous data from the chart
+        chartView.clearChart();
 
-        pie.data(data);
-        pie.title("Task Overview");
-        pie.legend().position("center-bottom").itemsLayout("horizontal").align("center");
+        // Add slices to the pie chart with task counts and percentages
+        chartView.addPieSlice(new PieModel(
+                String.format("Pending (%.1f%%)", pendingPercentage),
+                pendingCount,
+                Color.parseColor("#FFA726"))); // Orange
+        chartView.addPieSlice(new PieModel(
+                String.format("Completed (%.1f%%)", completedPercentage),
+                completedCount,
+                Color.parseColor("#66BB6A"))); // Green
+        chartView.addPieSlice(new PieModel(
+                String.format("Overdue (%.1f%%)", overduePercentage),
+                overdueCount,
+                Color.parseColor("#EF5350"))); // Red
 
-        pie.labels().position("outside").fontSize(14);
-        pie.animation(true);
-
-        chartView.setChart(pie);
+        // Animate the pie chart
+        chartView.startAnimation();
     }
+
+
+
 
 
     private int getUserId() {

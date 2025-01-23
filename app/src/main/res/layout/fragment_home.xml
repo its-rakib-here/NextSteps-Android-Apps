@@ -12,22 +12,191 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp">
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+            android:background="#FFFFFF"
+            android:elevation="8dp">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:padding="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <!-- Date and Day Container -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginEnd="24dp">
+
+                        <!-- Date -->
+                        <TextView
+                            android:id="@+id/toolbar_date"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="16sp"
+                            android:textColor="#3C4043"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="December 31, 2024" />
+
+                        <!-- Day -->
+                        <TextView
+                            android:id="@+id/toolbar_day"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="14sp"
+                            android:textColor="#5F6368"
+                            android:fontFamily="sans-serif-light"
+                            android:text="Tuesday" />
+                    </LinearLayout>
+
+                    <!-- Welcome Message -->
+                    <TextView
+                        android:id="@+id/toolbar_welcome_message"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:textSize="16sp"
+                        android:textColor="#1A73E8"
+                        android:fontFamily="sans-serif"
+                        android:text="Welcome back, Rakib! Let’s finish today’s work"
+                        android:gravity="start" />
+
+                    <!-- Profile Image -->
+                    <ImageView
+                        android:id="@+id/appbarprofile"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginEnd="8dp"
+                        android:src="@drawable/appbarprofile"
+                        android:scaleType="centerCrop"
+                        android:clipToOutline="true"
+                        android:padding="4dp"
+                        android:elevation="4dp" />
+                </LinearLayout>
+            </androidx.appcompat.widget.Toolbar>
+        </com.google.android.material.appbar.AppBarLayout>
+
 
         <!-- Pie Chart Section -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/bg_chart_card"
+        <RelativeLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="6dp">
+            android:layout_height="match_parent"
+            android:background="@color/white"
+            tools:context=".MainActivity">
 
-            <com.anychart.AnyChartView
-                android:id="@+id/chart_view"
+            <!-- CardView to display the PieChart -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/bg_chart_card"
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
-                android:visibility="visible" />
-        </androidx.cardview.widget.CardView>
+                android:layout_margin="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="6dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <!-- PieChart to display data -->
+                    <org.eazegraph.lib.charts.PieChart
+                        android:id="@+id/piechart"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:padding="16dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginLeft="8dp"
+                        android:layout_marginBottom="8dp"
+                        />
+
+                    <!-- Legend for PieChart -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+
+                        <!-- Pending -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="8dp">
+
+                            <View
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:background="@color/color_pending" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="Pending"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+
+                        <!-- Completed -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="8dp">
+
+                            <View
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:background="@color/color_completed" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="Completed"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+
+                        <!-- Overdue -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:background="@color/color_overdue" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="Overdue"
+                                android:textSize="16sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+        </RelativeLayout>
+
 
         <!-- Track Your Progress Header -->
         <TextView
