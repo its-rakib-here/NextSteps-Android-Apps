@@ -1,5 +1,7 @@
 package com.example.nextsteps;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,7 +22,6 @@ import com.android.volley.Request;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.android.material.search.SearchBar;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,45 +34,61 @@ import java.util.Map;
 
 public class ShowTaskFragment extends Fragment {
 
-
     private RecyclerView taskListView;
     private ShowTaskAdapter taskAdapter;
     private List<Task> taskList = new ArrayList<>();
-private SearchView search_view;
+    private SearchView search_view;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_show_task, container, false);
 
         taskListView = view.findViewById(R.id.taskListView);
-        search_view=view.findViewById(R.id.search_view);
+        search_view = view.findViewById(R.id.search_view);
         taskAdapter = new ShowTaskAdapter(taskList);
         taskListView.setAdapter(taskAdapter);
         taskListView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         // Load tasks when the fragment is created
         loadTasks();
+
         search_view.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                searchTasks(query);
-                loadTasks();// Perform search when the user submits the query
+                searchTasks(query);  // Perform search when the user submits the query
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                searchTasks(newText);
-                loadTasks();// Perform search as the user types
+                if (newText.trim().isEmpty()) {
+                    // If the query is empty, fetch all project details
+                    loadTasks();  // Reload all projects
+                } else {
+                    // Otherwise, perform search with the new query
+                    searchTasks(newText);
+                }
                 return false;
             }
         });
 
-
-
         return view;
     }
+
+
+
     private void searchTasks(String searchQuery) {
+        SharedPreferences prefs = getActivity().getSharedPreferences("MyApp", Context.MODE_PRIVATE);
+        int userId = prefs.getInt("id", -1); // Get the logged-in user's ID
+
+        if (userId == -1) {
+            // Handle case where no user is logged in
+            Toast.makeText(getContext(), "user id not found", Toast.LENGTH_SHORT).show();
+
+            return;
+        }
+
         String url = "https://mensstylehouse.com/aa/NextSteps/php/searchTask.php";
 
         // Create a new StringRequest for POST request
@@ -100,7 +117,7 @@ private SearchView search_view;
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        Log.e("ErrorParsingTask",e.getMessage());
+                        Log.e("ErrorParsingTask", e.getMessage());
                         Toast.makeText(getContext(), "Error parsing tasks", Toast.LENGTH_SHORT).show();
                     }
                 },
@@ -110,9 +127,10 @@ private SearchView search_view;
                 }) {
             @Override
             protected Map<String, String> getParams() {
-                // Send search query as POST parameter
+                // Send search query and user ID as POST parameters
                 Map<String, String> params = new HashMap<>();
-                params.put("search", searchQuery); // Add search query to POST data
+                params.put("search", searchQuery);  // Add search query to POST data
+                params.put("user_id", String.valueOf(userId));  // Add user ID to ensure only their tasks are returned
                 return params;
             }
         };
@@ -121,8 +139,18 @@ private SearchView search_view;
         Volley.newRequestQueue(requireContext()).add(stringRequest);
     }
 
+
     private void loadTasks() {
-        String url = "https://mensstylehouse.com/aa/NextSteps/php/retriveTask.php";
+        SharedPreferences prefs = getActivity().getSharedPreferences("MyApp", Context.MODE_PRIVATE);
+        int userId = prefs.getInt("id",-1); // Get the logged-in user's ID
+
+        if (userId == -1) {
+            // Handle case where no user is logged in (maybe show an error or prompt the user to log in)
+            Toast.makeText(getContext(),"userId in null",Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String url = "https://mensstylehouse.com/aa/NextSteps/php/retriveTask.php?user_id=" + userId;
 
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null,
                 response -> {
@@ -152,6 +180,8 @@ private SearchView search_view;
 
         Volley.newRequestQueue(requireContext()).add(jsonArrayRequest);
     }
+
+
 
     private void updateTask(int taskId, String title, String priority, String startDate, String endDate) {
         String url = "https://mensstylehouse.com/aa/NextSteps/php/update_and_delete_task.php";

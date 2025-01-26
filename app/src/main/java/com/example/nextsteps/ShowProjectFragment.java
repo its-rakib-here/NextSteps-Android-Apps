@@ -1,6 +1,8 @@
 package com.example.nextsteps;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -69,12 +71,19 @@ public class ShowProjectFragment extends Fragment {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 searchProjects(query);  // Call searchProjects to get filtered data from server
+
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                searchProjects(newText);  // Call searchProjects to get filtered data from server
+                if (newText.trim().isEmpty()) {
+                    // If the query is empty, fetch all project details
+                    fetchProjectDetails();  // Reload all projects
+                } else {
+                    // Otherwise, perform search with the new query
+                    searchProjects(newText);
+                }
                 return false;
             }
         });
@@ -84,6 +93,23 @@ public class ShowProjectFragment extends Fragment {
 
     // This method will fetch and update the project list based on the search query
     private void searchProjects(String query) {
+        // Retrieve the user ID from SharedPreferences (or other source)
+        SharedPreferences sharedPreferences = getContext().getSharedPreferences("MyApp", Context.MODE_PRIVATE);
+        int userId = sharedPreferences.getInt("id", -1); // -1 as default value for invalid user ID
+
+        // Check if the user is logged in
+        if (userId == -1) {
+            Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Check if the query is empty
+        if (query.trim().isEmpty()) {
+            Toast.makeText(getContext(), "Search query cannot be empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Create the StringRequest to send the query and user ID to the server
         StringRequest stringRequest = new StringRequest(Request.Method.POST, SEARCH_PROJECT_URL,
                 response -> {
                     try {
@@ -104,6 +130,7 @@ public class ShowProjectFragment extends Fragment {
                                 projectList.add(new Project(projectId, projectTitle, projectDescription, startDate, finishDate, status));
                             }
 
+                            // Notify adapter to update the UI
                             projectAdapter.notifyDataSetChanged();
                         } else {
                             Toast.makeText(getContext(), jsonResponse.getString("message"), Toast.LENGTH_SHORT).show();
@@ -120,15 +147,28 @@ public class ShowProjectFragment extends Fragment {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("query", query);
+                params.put("query", query);  // Include the search query
+                params.put("user_id", String.valueOf(userId));  // Include the logged-in user ID
                 return params;
             }
         };
 
+        // Add the request to the Volley request queue
         Volley.newRequestQueue(requireContext()).add(stringRequest);
     }
 
     private void fetchProjectDetails() {
+        // Retrieve the user ID from SharedPreferences
+        SharedPreferences sharedPreferences = getContext().getSharedPreferences("MyApp", Context.MODE_PRIVATE);
+        int userId = sharedPreferences.getInt("id", -1); // -1 as default value for invalid user ID
+
+        // Check if user ID is valid
+        if (userId == -1) {
+            Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Create a StringRequest to fetch project details based on the user ID
         StringRequest stringRequest = new StringRequest(Request.Method.POST, PROJECT_DETAILS_URL,
                 response -> {
                     try {
@@ -146,9 +186,11 @@ public class ShowProjectFragment extends Fragment {
                                 String finishDate = projectObject.getString("end_date");
                                 String status = projectObject.getString("status");
 
+                                // Add projects to the list
                                 projectList.add(new Project(projectId, projectTitle, projectDescription, startDate, finishDate, status));
                             }
 
+                            // Notify adapter of data change to update UI
                             projectAdapter.notifyDataSetChanged();
                         } else {
                             Toast.makeText(getContext(), jsonResponse.getString("message"), Toast.LENGTH_SHORT).show();
@@ -166,12 +208,16 @@ public class ShowProjectFragment extends Fragment {
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
                 params.put("action", "fetchProjects");
+                params.put("user_id", String.valueOf(userId)); // Include the logged-in user ID in the request
+                //params.put("search", searchQuery); // Uncomment if you want to add search functionality
                 return params;
             }
         };
 
+        // Add the request to the Volley request queue
         Volley.newRequestQueue(requireContext()).add(stringRequest);
     }
+
 
     // Inner Project class
     public class Project {

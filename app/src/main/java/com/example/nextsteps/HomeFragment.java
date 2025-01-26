@@ -108,16 +108,22 @@ public class HomeFragment extends Fragment {
         btnDailyProgress.setOnClickListener(v -> {
             currentFilter = "daily";
             fetchTaskData(currentFilter);
+            fetchProjectsWithTasks(currentFilter);
+
         });
 
         btnWeeklyProgress.setOnClickListener(v -> {
             currentFilter = "weekly";
             fetchTaskData(currentFilter);
+            fetchProjectsWithTasks(currentFilter);
+
         });
 
         btnMonthlyProgress.setOnClickListener(v -> {
             currentFilter = "monthly";
             fetchTaskData(currentFilter);
+            fetchProjectsWithTasks(currentFilter);
+
         });
 
         btn_overdue_tasks.setOnClickListener(new View.OnClickListener() {
@@ -125,6 +131,8 @@ public class HomeFragment extends Fragment {
             public void onClick(View view) {
                 currentFilter="overdue";
                 fetchTaskData(currentFilter);
+                fetchProjectsWithTasks(currentFilter);
+
             }
         });
         // Fetch initial data
@@ -153,8 +161,8 @@ public class HomeFragment extends Fragment {
                         int pendingCount = response.getInt("pending");
                         int completedCount = response.getInt("completed");
                         int overdueCount = response.getInt("overdue");
-                        Log.d("task","t"+response.toString());
-                        Log.d("Response", "Response: " + response.toString());
+//                        Log.d("task","t"+response.toString());
+//                        Log.d("Response", "Response: " + response.toString());
 
                         updatePieChart(pendingCount, completedCount, overdueCount);
 
@@ -177,6 +185,8 @@ public class HomeFragment extends Fragment {
         int userId = getUserId(); // Assuming this retrieves the user ID
         String url = "https://mensstylehouse.com/aa/NextSteps/php/showProjectOnhomePageBasedOnPendingTask.php";
 
+        Log.d("forProjeect","user id"+userId);
+
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("action", "get_filtered_projects");
@@ -190,7 +200,8 @@ public class HomeFragment extends Fragment {
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonObject,
                 response -> {
                     try {
-                        Log.d("ProjectDetails", "Projects: " + response.toString());
+                        Log.d("response","r"+response);
+                        Log.d("Raw", "Raw Response: " + response.toString());  // Log raw response
                         if (response.getBoolean("success")) {
                             if (response.has("projects")) {
                                 List<Project> projects = parseProjects(response.getJSONArray("projects"));
@@ -211,39 +222,11 @@ public class HomeFragment extends Fragment {
                 }
         );
 
+
+        // Add the request to the Volley request queue
         Volley.newRequestQueue(requireContext()).add(request);
     }
-//
-//    private void updatePieChart(int pendingCount, int completedCount, int overdueCount) {
-//        Pie pie = AnyChart.pie();
-//        int totalTasks = pendingCount + completedCount + overdueCount;
-//
-//        if (totalTasks == 0) {
-//            Toast.makeText(requireContext(), "No tasks available for the selected filter.", Toast.LENGTH_SHORT).show();
-//           // chartView.setVisibility(View.GONE);
-//            return;
-//        }
-//        Log.d("value", "Total task: " + totalTasks);
-//        Log.d("value","pending"+pendingCount);
-//        Log.d("value","complete"+completedCount);
-//        Log.d("value","overdue"+overdueCount);
-//
-//        chartView.setVisibility(View.VISIBLE);
-//
-//        List<DataEntry> data = new ArrayList<>();
-//        if (pendingCount > 0) data.add(new ValueDataEntry("Pending", pendingCount));
-//        if (completedCount > 0) data.add(new ValueDataEntry("Completed", completedCount));
-//        if (overdueCount > 0) data.add(new ValueDataEntry("Overdue", overdueCount));
-//
-//        pie.data(data);
-//        pie.title("Task Overview");
-//        pie.legend().position("center-bottom").itemsLayout("horizontal").align("center");
-//
-//        pie.labels().position("outside").fontSize(14);
-//        pie.animation(true);
-//
-//        chartView.setChart(pie);
-//    }
+
 
     private void updatePieChart(int pendingCount, int completedCount, int overdueCount) {
         // Calculate total tasks
@@ -322,7 +305,7 @@ public class HomeFragment extends Fragment {
 
 
 
-                    ));
+            ));
         }
         return projects;
     }
@@ -403,10 +386,12 @@ public class HomeFragment extends Fragment {
             Project project = projectList.get(position);
             holder.projectName.setText(project.getName());
             holder.tvPendingTasksCount.setText(String.valueOf(project.getPendingTaskCount()));
-            holder.tvProjectStatus.setText(project.getProjectStaus());
-            holder.tvStartDate.setText(project.project_start_date);
-            holder.tvEndDate.setText(project.getProject_end_date());
+            holder.tvTaskDescription.setText(project.getProjectDescription());
+            holder.tvProjectStatus.setText(project.getProjectStatus());
+            holder.tvStartDate.setText(project.getProjectStartDate());
+            holder.tvEndDate.setText(project.getProjectEndDate());
         }
+
 
         @Override
         public int getItemCount() {
@@ -461,18 +446,22 @@ public class HomeFragment extends Fragment {
     }
 
     // Project Model
+// Project Model
     private static class Project {
         private final String name;
         private final int pendingTaskCount;
-        String projectDescription,project_start_date,project_end_date,projectStaus;
+        private final String projectDescription;
+        private final String projectStartDate;
+        private final String projectEndDate;
+        private final String projectStatus;
 
-        public Project(String name, int pendingTaskCount,String projectDescription,String projectStaus,String project_start_date,String project_end_date) {
+        public Project(String name, int pendingTaskCount, String projectDescription, String projectStatus, String projectStartDate, String projectEndDate) {
             this.name = name;
             this.pendingTaskCount = pendingTaskCount;
-            this.project_end_date=project_end_date;
-            this.project_start_date=project_start_date;
-            this.projectDescription=projectDescription;
-            this.projectStaus=projectStaus;
+            this.projectDescription = projectDescription;
+            this.projectStartDate = projectStartDate;
+            this.projectEndDate = projectEndDate;
+            this.projectStatus = projectStatus;
         }
 
         public String getName() {
@@ -483,21 +472,21 @@ public class HomeFragment extends Fragment {
             return pendingTaskCount;
         }
 
-        public String getProjectDescription(){
+        public String getProjectDescription() {
             return projectDescription;
         }
 
-        public String getProject_start_date(){
-            return project_start_date;
+        public String getProjectStartDate() {
+            return projectStartDate;
         }
 
-        public String getProject_end_date(){
-            return project_end_date;
-        }
-        public String getProjectStaus(){
-            return projectStaus;
+        public String getProjectEndDate() {
+            return projectEndDate;
         }
 
-
+        public String getProjectStatus() {
+            return projectStatus;
+        }
     }
+
 }
